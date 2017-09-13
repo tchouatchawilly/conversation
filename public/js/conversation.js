@@ -14,6 +14,10 @@ var ConversationPanel = (function() {
     authorTypes: {
       user: 'user',
       watson: 'watson'
+    },
+    serviceType:{
+      searchdevis:"searchdevis",
+      createdevis:"createhdevis"
     }
   };
 
@@ -97,7 +101,6 @@ var ConversationPanel = (function() {
         } else {
           padding = maxPadding;
         }
-
         var widthValue = ( dummy.offsetWidth + padding) + 'px';
         input.setAttribute('style', 'width:' + widthValue);
         input.style.width = widthValue;
@@ -115,22 +118,64 @@ var ConversationPanel = (function() {
   // Display a user or Watson message that has just been sent/received
   function displayMessage(newPayload, typeValue) {
     var isUser = isUserMessage(typeValue);
-    var textExists = (newPayload.input && newPayload.input.text)
-      || (newPayload.output && newPayload.output.text);
-    if (isUser !== null && textExists) {
+    if(!isUser && newPayload.context.node && newPayload.context.refdevis 
+      && newPayload.context.datedebut && newPayload.context.datefin){
+
+        if(newPayload.context.node==='datefin'){
+          baloiseResponseServiceDisplayMessage(newPayload,settings.serviceType.searchdevis);
+        }
+      }else{
+            
+            var textExists = (newPayload.input && newPayload.input.text)
+              || (newPayload.output && newPayload.output.text);
+            if (isUser !== null && textExists) {
+              // Create new message DOM element
+              var messageDivs = buildMessageDomElements(newPayload, isUser);
+              var chatBoxElement = document.querySelector(settings.selectors.chatBox);
+              var previousLatest = chatBoxElement.querySelectorAll((isUser
+                      ? settings.selectors.fromUser : settings.selectors.fromWatson)
+                      + settings.selectors.latest);
+              // Previous "latest" message is no longer the most recent
+              if (previousLatest) {
+                Common.listForEach(previousLatest, function(element) {
+                  element.classList.remove('latest');
+                });
+              }
+
+              messageDivs.forEach(function(currentDiv) {
+                chatBoxElement.appendChild(currentDiv);
+                // Class to start fade in animation
+                currentDiv.classList.add('load');
+              });
+              // Move chat to the most recent messages when new messages are added
+              scrollToChatBottom();
+            }
+      }
+  }
+
+  function isSearchDevisProcess(serviceType){
+    if (serviceType === settings.serviceType.searchdevis) {
+      return true;
+    } else if (serviceType === settings.serviceType.createdevis) {
+      return false;
+    }
+    return null;
+  }
+
+  //call baloise SOAP service for evaluation and return the response.
+  function baloiseResponseServiceDisplayMessage(newPayload, serviceType){
+    var isSearchDevis=isSearchDevisProcess(serviceType);
+    if(isSearchDevis){ //Search Devis response construct.
       // Create new message DOM element
-      var messageDivs = buildMessageDomElements(newPayload, isUser);
+      var messageDivs = baloiseResponseBuildMessageDomElements(newPayload, isSearchDevis);
       var chatBoxElement = document.querySelector(settings.selectors.chatBox);
-      var previousLatest = chatBoxElement.querySelectorAll((isUser
-              ? settings.selectors.fromUser : settings.selectors.fromWatson)
-              + settings.selectors.latest);
+      var previousLatest = chatBoxElement.querySelectorAll(settings.selectors.fromWatson + settings.selectors.latest);
       // Previous "latest" message is no longer the most recent
       if (previousLatest) {
         Common.listForEach(previousLatest, function(element) {
           element.classList.remove('latest');
         });
       }
-
       messageDivs.forEach(function(currentDiv) {
         chatBoxElement.appendChild(currentDiv);
         // Class to start fade in animation
@@ -138,8 +183,186 @@ var ConversationPanel = (function() {
       });
       // Move chat to the most recent messages when new messages are added
       scrollToChatBottom();
-    }
+    }else
+      if(isSearchDevis!==null){//Create Devis response construct.
+
+      }
   }
+
+    // Constructs new DOM element from a message payload
+    function baloiseResponseBuildMessageDomElements(newPayload, isSearchDevis) {
+      var isUser=false;
+      var textArray = newPayload.output.text;
+      if (Object.prototype.toString.call( textArray ) !== '[object Array]') {
+        textArray = [textArray];
+      }
+      var messageArray = [];
+  
+      textArray.forEach(function(currentText) {
+        if (currentText) {
+          var messageJson = {
+            // <div class='segments'>
+            'tagName': 'div',
+            'classNames': ['segments'],
+            'children': [{
+              // <div class='from-user/from-watson latest'>
+              'tagName': 'div',
+              'classNames': ['from-watson', 'latest', ((messageArray.length === 0) ? 'top' : 'sub')],
+              'children': [{
+                // <div class='message-inner'>
+                'tagName': 'div',
+                'classNames': ['message-inner'],
+                'children': [
+                {
+                  // <p>{messageText}</p>
+                  'tagName': 'p',
+                  'text': currentText
+                },
+                {
+                  'tagName':'table',
+                  'classNames': ['table','table-sm','table-inverse'],
+                  'children': [
+                    {
+                      'tagName':'thead',
+                      'children': [
+                        {
+                          'tagName':'tr',
+                          'children': [
+                            {
+                              'tagName':'th',
+                              'text': 'Etabli le'
+                            },
+                            {
+                              'tagName':'th',
+                              'text': 'Branche'
+                            },
+                            {
+                              'tagName':'th',
+                              'text': 'Produit'
+                            },
+                            {
+                              'tagName':'th',
+                              'text': 'Ref'
+                            },
+                            {
+                              'tagName':'th',
+                              'text': 'Risque'
+                            },
+                            {
+                              'tagName':'th',
+                              'text': 'Infos'
+                            }
+
+                          ]
+
+                        }
+                      ]
+                    },
+                    {
+                      'tagName':'tbody',
+                      'children': [
+                        {
+                          'tagName':'tr',
+                          'children': [
+                            {
+                              'tagName':'td',
+                              'text': '7/09/2017'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Auto'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Voiture de tourisme/Camionette(<=3.5t)'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'REF123'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'PORSCHE 911'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'RC'
+                            }
+                          ]
+                        },
+                        {
+                          'tagName':'tr',
+                          'children': [
+                            {
+                              'tagName':'td',
+                              'text': '7/09/2017'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Auto'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Voiture de tourisme/Camionette(<=3.5t)'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'REF123'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'PORSCHE 911'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'RC'
+                            }
+                          ]
+                        },
+                        {
+                          'tagName':'tr',
+                          'children': [
+                            {
+                              'tagName':'td',
+                              'text': '7/09/2017'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Auto'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'Voiture de tourisme/Camionette(<=3.5t)'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'REF123'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'PORSCHE 911'
+                            },
+                            {
+                              'tagName':'td',
+                              'text': 'RC'
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                ]
+                }
+              ]
+              }]
+            }]
+          };
+          messageArray.push(Common.buildDomElement(messageJson));
+        }
+      });
+  
+      return messageArray;
+    }
+
 
   // Checks if the given typeValue matches with the user "name", the Watson "name", or neither
   // Returns true if user, false if Watson, and null if neither

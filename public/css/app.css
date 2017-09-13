@@ -21,13 +21,14 @@ div {
   width: 3.125rem;
   height: 3.125rem;
   border-radius: 1.5625rem;
-  background: #AB72F8;
-  top: 0.3125rem;
-  right: 0.3125rem;
+  /*background: #AB72F8;*/
+  top: 1.3125rem;
+  right: 7.3125rem;
   line-height: 3.125rem;
   vertical-align: middle;
 }
 
+/*
 #view-change-button img {
   display: none;
   width: 100%;
@@ -35,13 +36,14 @@ div {
   vertical-align: middle;
 }
 
+
 #view-change-button:not(.full) .not-full {
   display: inline-block;
 }
 
 #view-change-button.full .full {
   display: inline-block;
-}
+}*/
 
 #contentParent {
   height: 100%;
@@ -72,7 +74,7 @@ div {
   padding: 0.9375rem 0 0.625rem 0;
   margin: auto;
   text-align: left;
-  max-width: 25rem;
+  max-width: 50rem;
   min-width: 9.375rem;
 }
 
@@ -81,6 +83,7 @@ div {
   overflow-y: auto;
   overflow-x: hidden;
   height: calc(100% - 4rem);
+  background: lavender;
 }
 
 .message-inner {
@@ -118,7 +121,7 @@ div {
   color: #fff;
   letter-spacing: 0.015rem;
   line-height: 1.3125rem;
-  background: #00B4A0;
+  background: #0079b4;
   border-radius: 1.25rem;
   border-bottom-right-radius: 0;
   text-align: left;
