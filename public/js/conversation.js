@@ -118,14 +118,17 @@ var ConversationPanel = (function() {
   // Display a user or Watson message that has just been sent/received
   function displayMessage(newPayload, typeValue) {
     var isUser = isUserMessage(typeValue);
+    if(!isUser && newPayload.output && newPayload.output.text==='clear'){
+      location.reload();
+    }
+    else
     if(!isUser && newPayload.context.node && newPayload.context.refdevis 
-      && newPayload.context.datedebut && newPayload.context.datefin){
-
-        if(newPayload.context.node==='datefin'){
+      && newPayload.context.datedebut && newPayload.context.datefin && 
+        newPayload.context.node ==='finsearchdevis'){
+        //if(newPayload.context.node ==='datefin'|| newPayload.context.node ==='fullmatch'){
           baloiseResponseServiceDisplayMessage(newPayload,settings.serviceType.searchdevis);
-        }
-      }else{
-            
+        //}
+      }else{   
             var textExists = (newPayload.input && newPayload.input.text)
               || (newPayload.output && newPayload.output.text);
             if (isUser !== null && textExists) {
